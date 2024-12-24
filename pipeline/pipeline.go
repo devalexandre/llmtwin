@@ -2,6 +2,7 @@ package pipeline
 
 // Stage defines a single processing step in the pipeline.
 type Stage interface {
+	ShouldExecute(data map[string]interface{}) bool
 	Process(data map[string]interface{}) (map[string]interface{}, error)
 }
 
@@ -19,9 +20,11 @@ func (p *Pipeline) AddStage(stage Stage) {
 func (p *Pipeline) Execute(data map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	for _, stage := range p.stages {
-		data, err = stage.Process(data)
-		if err != nil {
-			return nil, err
+		if stage.ShouldExecute(data) { // Verifica a condição antes de executar
+			data, err = stage.Process(data)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return data, nil
